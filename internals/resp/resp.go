@@ -6,23 +6,6 @@ import (
 	"io"
 )
 
-// RESP data type	Minimal protocol version	Category	First byte
-// Simple strings	RESP2	Simple	+
-// Simple Errors	RESP2	Simple	-
-// Integers	RESP2	Simple	:
-// Bulk strings	RESP2	Aggregate	$
-// Arrays	RESP2	Aggregate	*
-// Nulls	RESP3	Simple	_
-// Booleans	RESP3	Simple	#
-// Doubles	RESP3	Simple	,
-// Big numbers	RESP3	Simple	(
-// Bulk errors	RESP3	Aggregate	!
-// Verbatim strings	RESP3	Aggregate	=
-// Maps	RESP3	Aggregate	%
-// Attributes	RESP3	Aggregate	|
-// Sets	RESP3	Aggregate	~
-// Pushes	RESP3	Aggregate	>
-
 // DataType represents the first byte of a RESP or RESP3 message type.
 type RESPDataType byte
 
@@ -48,11 +31,15 @@ const (
 )
 
 type Value struct {
-	Type 	RESPDataType
-	String 	string
+	Type    RESPDataType
+	IsNull  bool
+	Bool    bool
+	Double  float64
 	Integer int64
-	Array 	[]*Value
-	IsNull	bool
+	String  string
+	Array   []*Value
+	Map     map[string]*Value
+	Set     map[*Value]struct{}
 }
 
 func readUntilCRLF(reader *bufio.Reader) ([]byte, error) {
@@ -92,35 +79,35 @@ func Deserialize(reader io.Reader) (*Value, error) {
 		return deserializeArray(bufreader)
 
 	// RESP3 types
-	// case Null:
-	// 	return deserializeNull(bufreader)
+	case Null:
+		return deserializeNull(bufreader)
 
-	// case Boolean:
-	// 	return deserializeBoolean(bufreader)
+	case Boolean:
+		return deserializeBoolean(bufreader)
 
-	// case Double:
-	// 	return deserializeDouble(bufreader)
+	case Double:
+		return deserializeDouble(bufreader)
 
-	// case BigNumber:
-	// 	return deserializeBigNumber(bufreader)
+	case BigNumber:
+		return deserializeBigNumber(bufreader)
 
-	// case BulkError:
-	// 	return deserializeBulkError(bufreader)
+	case BulkError:
+		return deserializeBulkError(bufreader)
 
-	// case VerbatimString:
-	// 	return deserializeVerbatimString(bufreader)
+	case VerbatimString:
+		return deserializeVerbatimString(bufreader)
 
-	// case Map:
-	// 	return deserializeMap(bufreader)
+	case Map:
+		return deserializeMap(bufreader)
 
-	// case Attribute:
-	// 	return deserializeAttribute(bufreader)
+	case Attribute:
+		return deserializeAttribute(bufreader)
 
-	// case Set:
-	// 	return deserializeSet(bufreader)
+	case Set:
+		return deserializeSet(bufreader)
 
-	// case Push:
-	// 	return deserializePush(bufreader)
+	case Push:
+		return deserializePush(bufreader)
 
 	default:
 		return nil, fmt.Errorf("invalid RESP type: %c", respType)
@@ -149,35 +136,35 @@ func Serialize(value *Value) (string, error) {
 		return serializeArray(value)
 
 	// RESP3 types
-	// case Null:
-	// 	return serializeNull(bufreader)
+	case Null:
+		return serializeNull()
 
-	// case Boolean:
-	// 	return serializeBoolean(bufreader)
+	case Boolean:
+		return serializeBoolean(value)
 
-	// case Double:
-	// 	return serializeDouble(bufreader)
+	case Double:
+		return serializeDouble(value)
 
-	// case BigNumber:
-	// 	return serializeBigNumber(bufreader)
+	case BigNumber:
+		return serializeBigNumber(value)
 
-	// case BulkError:
-	// 	return serializeBulkError(bufreader)
+	case BulkError:
+		return serializeBulkError(value)
 
-	// case VerbatimString:
-	// 	return serializeVerbatimString(bufreader)
+	case VerbatimString:
+		return serializeVerbatimString(value)
 
-	// case Map:
-	// 	return serializeMap(bufreader)
+	case Map:
+		return serializeMap(value)
 
-	// case Attribute:
-	// 	return serializeAttribute(bufreader)
+	case Attribute:
+		return serializeAttribute(value)
 
-	// case Set:
-	// 	return serializeSet(bufreader)
+	case Set:
+		return serializeSet(value)
 
-	// case Push:
-	// 	return serializePush(bufreader)
+	case Push:
+		return serializePush(value)
 
 	default:
 		return "", fmt.Errorf("invalid RESP type: %c", value.Type)
