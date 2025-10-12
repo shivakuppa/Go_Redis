@@ -30,8 +30,8 @@ func serializeArray(v *Value) (string, error) {
 	}
 
 	var serialized string
-	for _, el := range v.Array {
-		s, err := Serialize(el)
+	for _, elem := range v.Array {
+		s, err := Serialize(elem)
 		if err != nil {
 			return "", fmt.Errorf("serializing error element: %w", err)
 		}
