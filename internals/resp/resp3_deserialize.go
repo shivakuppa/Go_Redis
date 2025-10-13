@@ -3,9 +3,9 @@ package resp
 import (
 	"bufio"
 	"fmt"
-	"strconv"
 	"io"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -36,8 +36,8 @@ func deserializeBoolean(reader *bufio.Reader) (*Value, error) {
 	}
 
 	return &Value{
-		Type:  Boolean,
-		Bool:  data[0] == 't',
+		Type: Boolean,
+		Bool: data[0] == 't',
 	}, nil
 }
 
@@ -86,8 +86,8 @@ func deserializeBigNumber(reader *bufio.Reader) (*Value, error) {
 		start = 1
 	}
 
-	for i := start ; i < len(data) ; i++ {
-		if (data[i] < '0' || data[i] > '9') {
+	for i := start; i < len(data); i++ {
+		if data[i] < '0' || data[i] > '9' {
 			return nil, fmt.Errorf("invalid big number")
 		}
 	}
@@ -217,7 +217,6 @@ func deserializeSet(reader *bufio.Reader) (*Value, error) {
 		Set:  set,
 	}, nil
 }
-
 
 func deserializePush(reader *bufio.Reader) (*Value, error) {
 	countBytes, err := readUntilCRLF(reader)

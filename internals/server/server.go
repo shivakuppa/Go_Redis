@@ -1,8 +1,8 @@
 package server
 
 import (
-	"net"
 	"log/slog"
+	"net"
 )
 
 const defaultListenAddr = ":6379"
@@ -20,7 +20,7 @@ func NewServer(config Config) *Server {
 	if len(config.ListenAddr) == 0 {
 		config.ListenAddr = defaultListenAddr
 	}
-	
+
 	return &Server{
 		Config: config,
 	}
@@ -32,11 +32,11 @@ func (s *Server) Start() error {
 		slog.Error("Cannot listen on port", "addr", s.ListenAddr, "error", err)
 		return err
 	}
-	
+
 	slog.Info("goredis server running", "listenAddr", s.ListenAddr)
 	defer ln.Close()
 	s.ln = ln
-	
+
 	return s.acceptLoop()
 }
 

@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"github.com/shivakuppa/Go_Redis/internals/resp"
 	"github.com/shivakuppa/Go_Redis/internals/db"
+	"github.com/shivakuppa/Go_Redis/internals/resp"
 )
 
 func set(v *resp.Value) *resp.Value {
@@ -13,9 +13,13 @@ func set(v *resp.Value) *resp.Value {
 
 	key := args[0].String
 	val := args[1].String
-	db.DB[key] = val
+
+	db.DB.Mu.Lock()
+	db.DB.Store[key] = val
+	db.DB.Mu.Unlock()
+
 	return &resp.Value{
-		Type: 	resp.SimpleString,
+		Type:   resp.SimpleString,
 		String: "OK",
 	}
 }
@@ -27,16 +31,20 @@ func get(v *resp.Value) *resp.Value {
 	}
 
 	key := args[0].String
-	val, ok := db.DB[key]
+
+	db.DB.Mu.RLock()
+	val, ok := db.DB.Store[key]
+	db.DB.Mu.RUnlock()
+
 	if !ok {
 		return &resp.Value{
-			Type: 	resp.Null,
+			Type:   resp.Null,
 			IsNull: true,
 		}
 	}
 
 	return &resp.Value{
-		Type: 	resp.BulkString,
+		Type:   resp.BulkString,
 		String: val,
 	}
 }

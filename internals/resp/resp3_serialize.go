@@ -5,7 +5,6 @@ import (
 	"math"
 	"strconv"
 	"strings"
-
 )
 
 func serializeNull() (string, error) {
@@ -45,9 +44,9 @@ func serializeBigNumber(v *Value) (string, error) {
 		}
 		start = 1
 	}
-	
-	for i := start ; i < len(data) ; i++ {
-		if (data[i] < '0' || data[i] > '9') {
+
+	for i := start; i < len(data); i++ {
+		if data[i] < '0' || data[i] > '9' {
 			return "", fmt.Errorf("invalid big number")
 		}
 	}

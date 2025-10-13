@@ -6,7 +6,7 @@ import (
 
 func command(v *resp.Value) *resp.Value {
 	return &resp.Value{
-		Type: 	resp.SimpleString,
+		Type:   resp.SimpleString,
 		String: "OK",
 	}
 }

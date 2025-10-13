@@ -14,8 +14,8 @@ func deserializeSimpleString(reader *bufio.Reader) (*Value, error) {
 	}
 
 	return &Value{
-		Type:	SimpleString,
-		String:	string(data),
+		Type:   SimpleString,
+		String: string(data),
 	}, nil
 }
 
@@ -26,8 +26,8 @@ func deserializeSimpleError(reader *bufio.Reader) (*Value, error) {
 	}
 
 	return &Value{
-		Type:	SimpleError,
-		String:	string(data),
+		Type:   SimpleError,
+		String: string(data),
 	}, nil
 }
 
@@ -43,8 +43,8 @@ func deserializeInteger(reader *bufio.Reader) (*Value, error) {
 	}
 
 	return &Value{
-		Type:		Integer,
-		Integer:	integer,
+		Type:    Integer,
+		Integer: integer,
 	}, nil
 }
 
@@ -65,7 +65,7 @@ func deserializeBulkString(reader *bufio.Reader) (*Value, error) {
 
 	if strLen == -1 {
 		return &Value{
-			Type:	BulkString,
+			Type:   BulkString,
 			IsNull: true,
 		}, nil
 	}
@@ -87,7 +87,7 @@ func deserializeBulkString(reader *bufio.Reader) (*Value, error) {
 	}
 
 	return &Value{
-		Type:	BulkString,
+		Type:   BulkString,
 		String: string(strBytes),
 	}, nil
 }
@@ -109,7 +109,7 @@ func deserializeArray(reader *bufio.Reader) (*Value, error) {
 
 	if numElements == -1 {
 		return &Value{
-			Type:	Array,
+			Type:   Array,
 			IsNull: true,
 		}, nil
 	}
@@ -124,7 +124,7 @@ func deserializeArray(reader *bufio.Reader) (*Value, error) {
 	}
 
 	return &Value{
-		Type:	Array,
-		Array: 	array,
+		Type:  Array,
+		Array: array,
 	}, nil
 }

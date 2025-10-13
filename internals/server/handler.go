@@ -3,13 +3,13 @@ package server
 import (
 	// "errors"
 	// "bufio"
-	"fmt"
-	"net"
 	"errors"
+	"fmt"
 	"io"
+	"net"
 
-	"github.com/shivakuppa/Go_Redis/internals/resp"
 	"github.com/shivakuppa/Go_Redis/internals/commands"
+	"github.com/shivakuppa/Go_Redis/internals/resp"
 )
 
 func (s *Server) handleConnection(conn net.Conn) {

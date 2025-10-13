@@ -1,8 +1,8 @@
 package resp
 
 import (
-	"strconv"
 	"fmt"
+	"strconv"
 )
 
 func serializeSimpleString(v *Value) (string, error) {

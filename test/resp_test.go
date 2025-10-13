@@ -139,7 +139,7 @@ func TestDeserializeRESP3(t *testing.T) {
 			expectedVal: &resp.Value{
 				Type: resp.Set,
 				Set: map[*resp.Value]struct{}{
-					{Type: resp.SimpleString, String: "apple"}: {},
+					{Type: resp.SimpleString, String: "apple"}:  {},
 					{Type: resp.SimpleString, String: "banana"}: {},
 				},
 			},
@@ -296,7 +296,7 @@ func TestSerializeRESP3(t *testing.T) {
 			value: &resp.Value{
 				Type: resp.Set,
 				Set: map[*resp.Value]struct{}{
-					{Type: resp.SimpleString, String: "apple"}: {},
+					{Type: resp.SimpleString, String: "apple"}:  {},
 					{Type: resp.SimpleString, String: "banana"}: {},
 				},
 			},
