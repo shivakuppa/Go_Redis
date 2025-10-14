@@ -34,37 +34,37 @@ func NewConfig() *Config {
 	return &Config{}
 }
 
-func ReadConf(fn string) *Config {
-	conf := NewConfig()
+func ReadConfig(fn string) *Config {
+	config := NewConfig()
 
 	file, err := os.Open(fn)
 	if err != nil {
 		fmt.Printf("cannot read file: %s - using default config\n", fn)
-		return conf
+		return config
 	}
 
 	scan := bufio.NewScanner(file)
 
 	for scan.Scan() {
 		line := scan.Text()
-		parseLine(line, conf)
+		parseLine(line, config)
 	}
 
 	if err := scan.Err(); err != nil {
 		fmt.Println("error scanning config file: ", err)
-		return conf
+		return config
 	}
 
-	if conf.Dir != "" {
-		os.MkdirAll(conf.Dir, 0755)
+	if config.Dir != "" {
+		os.MkdirAll(config.Dir, 0755)
 	}
 
-	fmt.Printf("%+v\n", conf)
+	fmt.Printf("%+v\n", config)
 
-	return conf
+	return config
 }
 
-func parseLine(line string, conf *Config) {
+func parseLine(line string, config *Config) {
 	args := strings.Split(line, " ")
 	cmd := args[0]
 	switch cmd {
@@ -85,25 +85,25 @@ func parseLine(line string, conf *Config) {
 			Secs:        secs,
 			KeysChanged: keysChanged,
 		}
-		conf.RDB = append(conf.RDB, snapshot)
+		config.RDB = append(config.RDB, snapshot)
 
 	case "dbfilename":
-		conf.RDBfn = args[1]
+		config.RDBfn = args[1]
 
 	case "appendfilename":
-		conf.AOFfn = args[1]
+		config.AOFfn = args[1]
 
 	case "appendfsync":
-		conf.AOFfsync = FSyncMode(args[1])
+		config.AOFfsync = FSyncMode(args[1])
 
 	case "dir":
-		conf.Dir = args[1]
+		config.Dir = args[1]
 
 	case "appendonly":
 		if args[1] == "yes" {
-			conf.AOFenabled = true
+			config.AOFenabled = true
 		} else {
-			conf.AOFenabled = false
+			config.AOFenabled = false
 		}
 	}
 

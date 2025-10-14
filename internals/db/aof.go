@@ -1,18 +1,19 @@
-package data_persistance
+package db
 
 import (
 	"fmt"
 	"os"
 	"path"
+	"time"
 
 	"github.com/shivakuppa/Go_Redis/config"
-	"github.com/shivakuppa/Go_Redis/internals/server"
+	myio "github.com/shivakuppa/Go_Redis/internals/io"
 )
 
 type Aof struct {
-	Writer 		*server.Writer
-	File 		*os.File
-	Config 		*config.Config
+	Writer *myio.RespWriter
+	File   *os.File
+	Config *config.Config
 }
 
 func NewAOF(conf *config.Config) *Aof {
@@ -25,9 +26,19 @@ func NewAOF(conf *config.Config) *Aof {
 		return &aof
 	}
 
-	aof.Writer = server.NewWriter(file)
+	aof.Writer = myio.NewRespWriter(file)
 	aof.File = file
+
+	go func() {
+		t := time.NewTicker(1 * time.Second)
+		defer t.Stop()
+
+		for range t.C {
+			if err := aof.Writer.Flush(); err != nil {
+				fmt.Println("AOF flush error:", err)
+			}
+		}
+	}()
 
 	return &aof
 }
-

@@ -7,42 +7,38 @@ import (
 
 const defaultListenAddr = ":6379"
 
-type Config struct {
-	ListenAddr string
-}
-
 type Server struct {
-	Config
-	ln net.Listener
+	ListenAddr string
+	Listener   net.Listener
 }
 
-func NewServer(config Config) *Server {
-	if len(config.ListenAddr) == 0 {
-		config.ListenAddr = defaultListenAddr
+func NewServer(listenAddr string) *Server {
+	if len(listenAddr) == 0 {
+		listenAddr = defaultListenAddr
 	}
 
 	return &Server{
-		Config: config,
+		ListenAddr: listenAddr,
 	}
 }
 
 func (s *Server) Start() error {
-	ln, err := net.Listen("tcp", s.ListenAddr)
+	listener, err := net.Listen("tcp", s.ListenAddr)
 	if err != nil {
 		slog.Error("Cannot listen on port", "addr", s.ListenAddr, "error", err)
 		return err
 	}
 
 	slog.Info("goredis server running", "listenAddr", s.ListenAddr)
-	defer ln.Close()
-	s.ln = ln
+	defer listener.Close()
+	s.Listener = listener
 
 	return s.acceptLoop()
 }
 
 func (s *Server) acceptLoop() error {
 	for {
-		conn, err := s.ln.Accept()
+		conn, err := s.Listener.Accept()
 		if err != nil {
 			slog.Error("Error during accepting")
 			continue

@@ -5,8 +5,8 @@ import (
 	"github.com/shivakuppa/Go_Redis/internals/resp"
 )
 
-func set(v *resp.Value) *resp.Value {
-	args := v.Array[1:]
+func set(value *resp.Value, state *db.AppState) *resp.Value {
+	args := value.Array[1:]
 	if len(args) != 2 {
 		return &resp.Value{Type: resp.SimpleError, String: "ERR Invalid number of arguments for SET"}
 	}
@@ -16,6 +16,14 @@ func set(v *resp.Value) *resp.Value {
 
 	db.DB.Mu.Lock()
 	db.DB.Store[key] = val
+
+	if state.Config.AOFenabled {
+		state.Aof.Writer.Write(value)
+
+		if state.Config.AOFfsync == "always" {
+			state.Aof.Writer.Flush()
+		}
+	}
 	db.DB.Mu.Unlock()
 
 	return &resp.Value{
@@ -24,8 +32,8 @@ func set(v *resp.Value) *resp.Value {
 	}
 }
 
-func get(v *resp.Value) *resp.Value {
-	args := v.Array[1:]
+func get(value *resp.Value, state *db.AppState) *resp.Value {
+	args := value.Array[1:]
 	if len(args) != 1 {
 		return &resp.Value{Type: resp.SimpleError, String: "ERR Invalid number of arguments for GET"}
 	}

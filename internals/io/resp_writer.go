@@ -1,4 +1,4 @@
-package server
+package io
 
 import (
 	"bufio"
@@ -8,15 +8,15 @@ import (
 	"github.com/shivakuppa/Go_Redis/internals/resp"
 )
 
-type Writer struct {
+type RespWriter struct {
 	writer *bufio.Writer
 }
 
-func NewWriter(w io.Writer) *Writer {
-	return &Writer{writer: bufio.NewWriter(w)}
+func NewRespWriter(w io.Writer) *RespWriter {
+	return &RespWriter{writer: bufio.NewWriter(w)}
 }
 
-func (w *Writer) Write(v *resp.Value) error {
+func (w *RespWriter) Write(v *resp.Value) error {
 	reply, err := resp.Serialize(v)
 	if err != nil {
 		return fmt.Errorf("serialize value: %w", err)
@@ -29,6 +29,6 @@ func (w *Writer) Write(v *resp.Value) error {
 	return nil
 }
 
-func (w *Writer) Flush() error {
+func (w *RespWriter) Flush() error {
 	return w.writer.Flush()
 }

@@ -61,7 +61,7 @@ func Deserialize(reader io.Reader) (*Value, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read resp first byte: %w", err)
 	}
-	fmt.Println(string(respType))
+
 	switch RESPDataType(respType) {
 	case SimpleString:
 		return deserializeSimpleString(bufreader)

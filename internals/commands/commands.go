@@ -5,10 +5,11 @@ import (
 	"net"
 	"strings"
 
+	"github.com/shivakuppa/Go_Redis/internals/db"
 	"github.com/shivakuppa/Go_Redis/internals/resp"
 )
 
-type CmdHandler func(*resp.Value) *resp.Value
+type CmdHandler func(*resp.Value, *db.AppState) *resp.Value
 
 var CmdHandlers = map[string]CmdHandler{
 	CMD_COMMAND: command,
@@ -16,8 +17,8 @@ var CmdHandlers = map[string]CmdHandler{
 	CMD_GET:     get,
 }
 
-func HandleCommand(conn net.Conn, v *resp.Value) *resp.Value {
-	cmd := v.Array[0].String
+func HandleCommand(conn net.Conn, value *resp.Value, state *db.AppState) *resp.Value {
+	cmd := value.Array[0].String
 	handler, ok := CmdHandlers[strings.ToUpper(cmd)]
 	if !ok {
 		fmt.Println("Invalid command: ", cmd)
@@ -27,6 +28,15 @@ func HandleCommand(conn net.Conn, v *resp.Value) *resp.Value {
 		}
 	}
 
-	reply := handler(v)
+	reply := handler(value, state)
 	return reply
+}
+
+func ResolveCommand(value *resp.Value, state *db.AppState) {
+	cmd := value.Array[0].String
+	handler, ok := CmdHandlers[strings.ToUpper(cmd)]
+	if !ok {
+		fmt.Println("Invalid command: ", cmd)
+	}
+	handler(value, state)
 }
