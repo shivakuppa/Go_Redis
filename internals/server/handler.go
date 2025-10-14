@@ -16,11 +16,16 @@ import (
 )
 
 func (s *Server) handleConnection(conn net.Conn) {
-	config := config.ReadConfig("./config/redis.conf")
-	state := db.NewAppState(config)
-	if config.AOFenabled {
+	conf := config.ReadConfig("./config/redis.conf")
+	state := db.NewAppState(conf)
+	if conf.AOFenabled {
 		log.Println("syncing AOF records")
 		aofSync(state.Aof)
+	}
+
+	if len(conf.RDB) > 0 {
+		db.SyncRDB(conf)
+		db.InitRDBTrackers(conf)
 	}
 
 	defer conn.Close()

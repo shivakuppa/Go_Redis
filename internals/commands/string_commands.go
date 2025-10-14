@@ -24,6 +24,11 @@ func set(value *resp.Value, state *db.AppState) *resp.Value {
 			state.Aof.Writer.Flush()
 		}
 	}
+
+	if len(state.Config.RDB) > 0 {
+		db.IncrRDBTrackers()
+	}
+
 	db.DB.Mu.Unlock()
 
 	return &resp.Value{
