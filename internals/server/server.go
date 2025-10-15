@@ -3,6 +3,9 @@ package server
 import (
 	"log/slog"
 	"net"
+	"sync"
+
+	"github.com/shivakuppa/Go_Redis/internals/db"
 )
 
 const defaultListenAddr = ":6379"
@@ -22,7 +25,7 @@ func NewServer(listenAddr string) *Server {
 	}
 }
 
-func (s *Server) Start() error {
+func (s *Server) Start(state *db.AppState) error {
 	listener, err := net.Listen("tcp", s.ListenAddr)
 	if err != nil {
 		slog.Error("Cannot listen on port", "addr", s.ListenAddr, "error", err)
@@ -33,17 +36,24 @@ func (s *Server) Start() error {
 	defer listener.Close()
 	s.Listener = listener
 
-	return s.acceptLoop()
+	return s.acceptLoop(state)
 }
 
-func (s *Server) acceptLoop() error {
+func (s *Server) acceptLoop(state *db.AppState) error {
+	var wg sync.WaitGroup
+	defer wg.Wait() // ✅ wait for all connections only when shutting down
+
 	for {
 		conn, err := s.Listener.Accept()
 		if err != nil {
-			slog.Error("Error during accepting")
+			slog.Error("Error during accepting", "error", err)
 			continue
 		}
 
-		go s.handleConnection(conn)
+		wg.Add(1)
+		go func(c net.Conn, appstate *db.AppState) {
+			defer wg.Done()
+			s.handleConnection(c, appstate)
+		}(conn, state)
 	}
 }

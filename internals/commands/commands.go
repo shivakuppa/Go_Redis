@@ -12,9 +12,22 @@ import (
 type CmdHandler func(*resp.Value, *db.AppState) *resp.Value
 
 var CmdHandlers = map[string]CmdHandler{
-	CMD_COMMAND: command,
-	CMD_SET:     set,
-	CMD_GET:     get,
+	// Connection Commands
+	CMD_COMMAND: 	command,
+
+	// Key Commands
+	CMD_DEL: 		del,
+	CMD_EXISTS:		exists,
+	CMD_KEYS:		keys,
+
+	// String Commands
+	CMD_SET:    	set,
+	CMD_GET:     	get,
+
+	// Extra Commands
+	"SAVE":			save,
+	"BGSAVE":		bgsave,
+
 }
 
 func HandleCommand(conn net.Conn, value *resp.Value, state *db.AppState) *resp.Value {

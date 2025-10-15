@@ -5,8 +5,10 @@ import (
 )
 
 type AppState struct {
-	Config *config.Config
-	Aof    *Aof
+	Config 			*config.Config
+	Aof    			*Aof
+	BgSaveRunning  	bool
+	DBCopy			map[string]string
 }
 
 func NewAppState(config *config.Config) *AppState {

@@ -7,25 +7,22 @@ import (
 	"io"
 	"log"
 	"net"
-
-	"github.com/shivakuppa/Go_Redis/config"
+	
 	"github.com/shivakuppa/Go_Redis/internals/commands"
 	"github.com/shivakuppa/Go_Redis/internals/db"
 	myio "github.com/shivakuppa/Go_Redis/internals/io"
 	"github.com/shivakuppa/Go_Redis/internals/resp"
 )
 
-func (s *Server) handleConnection(conn net.Conn) {
-	conf := config.ReadConfig("./config/redis.conf")
-	state := db.NewAppState(conf)
-	if conf.AOFenabled {
+func (s *Server) handleConnection(conn net.Conn, state *db.AppState) {
+	if state.Config.AOFenabled {
 		log.Println("syncing AOF records")
 		aofSync(state.Aof)
 	}
 
-	if len(conf.RDB) > 0 {
-		db.SyncRDB(conf)
-		db.InitRDBTrackers(conf)
+	if len(state.Config.RDB) > 0 {
+		db.SyncRDB(state)
+		db.InitRDBTrackers(state)
 	}
 
 	defer conn.Close()

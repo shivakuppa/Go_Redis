@@ -8,14 +8,16 @@ import (
 func set(value *resp.Value, state *db.AppState) *resp.Value {
 	args := value.Array[1:]
 	if len(args) != 2 {
-		return &resp.Value{Type: resp.SimpleError, String: "ERR Invalid number of arguments for SET"}
+		return &resp.Value{
+			Type: resp.SimpleError, 
+			String: "ERR Invalid number of arguments for SET",
+		}
 	}
 
 	key := args[0].String
 	val := args[1].String
 
-	db.DB.Mu.Lock()
-	db.DB.Store[key] = val
+	db.DB.Set(key, val)
 
 	if state.Config.AOFenabled {
 		state.Aof.Writer.Write(value)
@@ -29,8 +31,6 @@ func set(value *resp.Value, state *db.AppState) *resp.Value {
 		db.IncrRDBTrackers()
 	}
 
-	db.DB.Mu.Unlock()
-
 	return &resp.Value{
 		Type:   resp.SimpleString,
 		String: "OK",
@@ -40,14 +40,14 @@ func set(value *resp.Value, state *db.AppState) *resp.Value {
 func get(value *resp.Value, state *db.AppState) *resp.Value {
 	args := value.Array[1:]
 	if len(args) != 1 {
-		return &resp.Value{Type: resp.SimpleError, String: "ERR Invalid number of arguments for GET"}
+		return &resp.Value{
+			Type: resp.SimpleError, 
+			String: "ERR Invalid number of arguments for GET",
+		}
 	}
 
 	key := args[0].String
-
-	db.DB.Mu.RLock()
-	val, ok := db.DB.Store[key]
-	db.DB.Mu.RUnlock()
+	val, ok := db.DB.Get(key)
 
 	if !ok {
 		return &resp.Value{

@@ -30,8 +30,8 @@ func NewSnapshotTracker(rdb *config.RDBSnapshot) *SnapshotTracker {
 
 var trackers = []*SnapshotTracker{}
 
-func InitRDBTrackers(conf *config.Config) {
-	for _, rdb := range conf.RDB {
+func InitRDBTrackers(state *AppState) {
+	for _, rdb := range state.Config.RDB {
 		tracker := NewSnapshotTracker(&rdb)
 		trackers = append(trackers, tracker)
 
@@ -41,7 +41,7 @@ func InitRDBTrackers(conf *config.Config) {
 			for range tracker.ticker.C {
 				// log.Printf("keys changed: %d - keys required to change: %d", tracker.keys, tracker.rdb.KeysChanged)
 				if tracker.keys >= tracker.rdb.KeysChanged {
-					SaveRDB(conf)
+					SaveRDB(state)
 				}
 				tracker.keys = 0
 			}
@@ -55,8 +55,8 @@ func IncrRDBTrackers() {
 	}
 }
 
-func SaveRDB(conf *config.Config) {
-	fp := path.Join(conf.Dir, conf.RDBfn)
+func SaveRDB(state *AppState) {
+	fp := path.Join(state.Config.Dir, state.Config.RDBfn)
 	file, err := os.OpenFile(fp, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644) // owner (read-write), everyone else (read)
 	if err != nil {
 		log.Println("error opening rdb file: ", err)
@@ -64,20 +64,27 @@ func SaveRDB(conf *config.Config) {
 	}
 	defer file.Close()
 
-	err = gob.NewEncoder(file).Encode(&DB.Store)
+	err = gob.NewEncoder(file).Encode(DB.GetItems())
 	if err != nil {
 		log.Println("error saving to RDB: ", err)
 		return
 	}
 	log.Println("saving DB to RDB file")
 	// var buf bytes.Buffer
-	// if state.bgsaveRunning {
-	// 	err = gob.NewEncoder(&buf).Encode(&state.dbCopy)
-	// } else {
-	// 	DB.Mu.RLock()
-	// 	err = gob.NewEncoder(&buf).Encode(&DB.Store)
-	// 	DB.Mu.RUnlock()
-	// }
+	if state.BgSaveRunning {
+		err = gob.NewEncoder(file).Encode(&state.DBCopy)
+		if err != nil {
+			log.Println("error saving to RDB copy: ", err)
+		}
+	} else {
+		DB.mu.RLock()
+		err = gob.NewEncoder(file).Encode(DB.GetItems())
+		if err != nil {
+			log.Println("error saving to RDB: ", err)
+			return
+		}
+		DB.mu.RUnlock()
+	}
 
 	// if err != nil {
 	// 	log.Println("error encoding db: ", err)
@@ -123,8 +130,8 @@ func SaveRDB(conf *config.Config) {
 	// state.rdbStats.rdb_saves++
 }
 
-func SyncRDB(conf *config.Config) {
-	fp := path.Join(conf.Dir, conf.RDBfn)
+func SyncRDB(state *AppState) {
+	fp := path.Join(state.Config.Dir, state.Config.RDBfn)
 	file, err := os.OpenFile(fp, os.O_CREATE|os.O_RDONLY, 0644)
 	if err != nil {
 		log.Println("error opening rdb file: ", err)
@@ -133,7 +140,7 @@ func SyncRDB(conf *config.Config) {
 	}
 	defer file.Close()
 
-	err = gob.NewDecoder(file).Decode(&DB.Store)
+	err = gob.NewDecoder(file).Decode(&DB.store)
 	if err != nil {
 		log.Println("error decoding rdb file: ", err)
 		return
