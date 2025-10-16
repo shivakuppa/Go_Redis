@@ -5,6 +5,7 @@ import (
 	"net"
 	"sync"
 
+	"github.com/shivakuppa/Go_Redis/internals/client"
 	"github.com/shivakuppa/Go_Redis/internals/db"
 )
 
@@ -50,10 +51,12 @@ func (s *Server) acceptLoop(state *db.AppState) error {
 			continue
 		}
 
+		c := client.NewClient(conn)
+
 		wg.Add(1)
-		go func(c net.Conn, appstate *db.AppState) {
+		go func(c *client.Client, appstate *db.AppState) {
 			defer wg.Done()
 			s.handleConnection(c, appstate)
-		}(conn, state)
+		}(c, state)
 	}
 }
