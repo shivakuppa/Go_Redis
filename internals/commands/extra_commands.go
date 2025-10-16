@@ -17,7 +17,8 @@ func save(value *resp.Value, state *db.AppState) *resp.Value {
 	db.SaveRDB(state)
 	return &resp.Value{
 		Type: resp.SimpleString,
-		String: "OK"}
+		String: "OK",
+	}
 }
 
 func bgsave(value *resp.Value, state *db.AppState) *resp.Value {
@@ -36,7 +37,6 @@ func bgsave(value *resp.Value, state *db.AppState) *resp.Value {
 		}
 	}
 	
-
 	copy := db.DB.GetItems()
 	state.DBCopy = *copy
 	go func() {
@@ -51,5 +51,22 @@ func bgsave(value *resp.Value, state *db.AppState) *resp.Value {
 	db.SaveRDB(state)
 	return &resp.Value{
 		Type: resp.SimpleString,
-		String: "OK"}
+		String: "OK",
+	}
+}
+
+func flushdb(value *resp.Value, state *db.AppState) *resp.Value{
+	db.DB.Reset()
+	return &resp.Value{
+		Type: resp.SimpleString,
+		String: "OK",
+	}
+}
+
+func dbsize(value *resp.Value, state *db.AppState) *resp.Value{
+	length := db.DB.GetLen()
+	return &resp.Value{
+		Type: resp.Integer,
+		Integer: int64(length),
+	}
 }

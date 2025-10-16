@@ -27,7 +27,8 @@ var CmdHandlers = map[string]CmdHandler{
 	// Extra Commands
 	"SAVE":			save,
 	"BGSAVE":		bgsave,
-
+	"FLUSHDB":		flushdb,
+	"DBSIZE":		dbsize,
 }
 
 func HandleCommand(conn net.Conn, value *resp.Value, state *db.AppState) *resp.Value {

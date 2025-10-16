@@ -12,7 +12,9 @@ type DatabaseInterface interface {
 	Set(key string, val string)
 	Del(key string)
 	GetKeys() []string
-	GetItems() map[string]string 
+	GetItems() map[string]string
+	GetLen() int 
+	Reset()
 }
 
 func (d *Database) Get(key string) (string, bool) {
@@ -63,6 +65,19 @@ func (d *Database) GetItems() *map[string]string {
     }
 
     return &items
+}
+
+func (d *Database) GetLen() int {
+	d.mu.RLock()
+	length := len(d.store)
+	d.mu.RUnlock()
+	return length
+}
+
+func (d *Database) Reset() {
+	d.mu.Lock()
+	d.store = map[string]string{}
+	d.mu.Unlock()
 }
 
 var DB = NewDatabase()
