@@ -1,7 +1,7 @@
 package db
 
 import (
-	// "bytes"
+	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
@@ -57,78 +57,68 @@ func IncrRDBTrackers() {
 
 func SaveRDB(state *AppState) {
 	fp := path.Join(state.Config.Dir, state.Config.RDBfn)
-	file, err := os.OpenFile(fp, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644) // owner (read-write), everyone else (read)
+	file, err := os.OpenFile(fp, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
-		log.Println("error opening rdb file: ", err)
+		log.Println("error opening rdb file:", err)
 		return
 	}
 	defer file.Close()
 
-	err = gob.NewEncoder(file).Encode(DB.GetItems())
-	if err != nil {
-		log.Println("error saving to RDB: ", err)
-		return
-	}
 	log.Println("saving DB to RDB file")
-	// var buf bytes.Buffer
+
+	var buf bytes.Buffer
+	var encodeErr error
+
 	if state.BgSaveRunning {
-		err = gob.NewEncoder(file).Encode(&state.DBCopy)
-		if err != nil {
-			log.Println("error saving to RDB copy: ", err)
-		}
+		encodeErr = gob.NewEncoder(&buf).Encode(&state.DBCopy)
 	} else {
 		DB.mu.RLock()
-		err = gob.NewEncoder(file).Encode(DB.GetItems())
-		if err != nil {
-			log.Println("error saving to RDB: ", err)
-			return
-		}
+		encodeErr = gob.NewEncoder(&buf).Encode(DB.GetItems())
 		DB.mu.RUnlock()
 	}
 
-	// if err != nil {
-	// 	log.Println("error encoding db: ", err)
-	// 	return
-	// }
+	if encodeErr != nil {
+		log.Println("error encoding db:", encodeErr)
+		return
+	}
 
-	// data := buf.Bytes()
+	data := buf.Bytes()
 
-	// bsum, err := Hash(&buf)
-	// if err != nil {
-	// 	log.Println("rdb - cannot compute buf checksum: ", err)
-	// 	return
-	// }
+	// Compute hash of buffer before writing
+	bsum, err := Hash(bytes.NewReader(data))
+	if err != nil {
+		log.Println("rdb - cannot compute buf checksum:", err)
+		return
+	}
 
-	// _, err = file.Write(data)
-	// if err != nil {
-	// 	log.Println("rdb - cannot write to file: ", err)
-	// 	return
-	// }
-	// if err := file.Sync(); err != nil {
-	// 	log.Println("rdb - cannot flush file to disk: ", err)
-	// 	return
-	// }
-	// if _, err := file.Seek(0, io.SeekStart); err != nil {
-	// 	log.Println("rdb - cannot seek file: ", err)
-	// 	return
-	// }
+	// Write to file
+	if _, err := file.Write(data); err != nil {
+		log.Println("rdb - cannot write to file:", err)
+		return
+	}
+	if err := file.Sync(); err != nil {
+		log.Println("rdb - cannot flush file to disk:", err)
+		return
+	}
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		log.Println("rdb - cannot seek file:", err)
+		return
+	}
 
-	// fsum, err := Hash(file)
-	// if err != nil {
-	// 	log.Println("rdb - cannot compute file checksum: ", err)
-	// 	return
-	// }
+	fsum, err := Hash(file)
+	if err != nil {
+		log.Println("rdb - cannot compute file checksum:", err)
+		return
+	}
 
-	// if bsum != fsum {
-	// 	log.Printf("rdb - buf and file checksums do not match:\nf=%s\nb=%s\n", fsum, bsum)
-	// 	return
-	// }
+	if bsum != fsum {
+		log.Printf("rdb - buf and file checksums do not match:\nf=%s\nb=%s\n", fsum, bsum)
+		return
+	}
 
-	// log.Println("saved RDB file")
-
-	// state.rdbStats.rdb_last_save_ts = time.Now().Unix()
-	// state.rdbStats.rdb_saves++
+	log.Println("saved RDB file successfully!")
 }
+
 
 func SyncRDB(state *AppState) {
 	fp := path.Join(state.Config.Dir, state.Config.RDBfn)
@@ -148,10 +138,10 @@ func SyncRDB(state *AppState) {
 	log.Println("synced RDB")
 }
 
-func Hash(r io.Reader) (string, error) {
-	h := sha256.New()
-	if _, err := io.Copy(h, r); err != nil {
+func Hash(reader io.Reader) (string, error) {
+	hash := sha256.New()
+	if _, err := io.Copy(hash, reader); err != nil {
 		return "", err
 	}
-	return hex.EncodeToString(h.Sum(nil)), nil
+	return hex.EncodeToString(hash.Sum(nil)), nil
 }
