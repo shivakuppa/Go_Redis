@@ -8,7 +8,7 @@ type AppState struct {
 	Config 			*config.Config
 	Aof    			*Aof
 	BgSaveRunning  	bool
-	DBCopy			map[string]string
+	DBCopy			map[string]*Item
 }
 
 func NewAppState(config *config.Config) *AppState {

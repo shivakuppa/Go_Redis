@@ -58,6 +58,6 @@ func get(value *resp.Value, state *db.AppState) *resp.Value {
 
 	return &resp.Value{
 		Type:   resp.BulkString,
-		String: val,
+		String: val.Value,
 	}
 }
